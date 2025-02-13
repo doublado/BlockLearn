@@ -35,6 +35,8 @@
     if (option === 'logout') {
       userStore.clearUser()
       handleNavigate('')
+    } else if (option === 'index') {
+      handleNavigate('') // Navigate to index (homepage)
     } else {
       handleNavigate(option)
     }
@@ -45,7 +47,7 @@
   <div>
     <n-layout-header bordered class="px-4 py-3 bg-white shadow-md sticky top-0 z-50">
       <div class="flex items-center justify-between">
-        <h1 class="text-xl font-bold cursor-pointer text-primary" @click="handleNavigate('')">
+        <h1 class="text-xl font-bold cursor-pointer text-primary" @click="handleProfileSelect('index')">
           BlockLearn
         </h1>
         <div class="flex items-center space-x-4">
