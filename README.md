@@ -10,7 +10,7 @@ BlockLearn is a web-based game designed to help users learn programming through 
 #### 1. Clone the Repository
 Run the following commands:
 ```bash
-git clone <repository-url>
+git clone https://github.com/doublado/BlockLearn.git
 cd BlockLearn
 ```
 
@@ -84,7 +84,7 @@ BlockLearn er et webbaseret spil designet til at hjælpe brugere med at lære pr
 #### 1. Klon Repositoryet
 Kør følgende kommandoer:
 ```bash
-git clone <repository-url>
+git clone https://github.com/doublado/BlockLearn.git
 cd BlockLearn
 ```
 
