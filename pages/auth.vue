@@ -3,7 +3,13 @@
   import { useRouter, useRoute } from 'vue-router'
   import { NCard, NTabs, NTabPane, NForm, NFormItemRow, NInput, NButton } from 'naive-ui'
   import { useUserStore } from '~/stores/user'
+  import { useMessage } from 'naive-ui'
 
+  definePageMeta({
+    middleware: 'only-guests'
+  });
+
+  const message = useMessage()
   const router = useRouter()
   const route = useRoute()
   const activeTab = ref(route.query.tab || 'signin')
@@ -43,7 +49,8 @@
       }
     } catch (error: any) {
       console.error(error)
-      alert(error.data?.statusMessage || 'Log ind mislykkedes.')
+      // alert(error.data?.statusMessage || 'Log ind mislykkedes.')
+      message.error(error.data?.statusMessage || 'Log ind mislykkedes.')
     }
   }
 
@@ -78,7 +85,8 @@
       }
     } catch (error: any) {
       console.error(error)
-      alert(error.data?.statusMessage || 'Oprettelse af konto mislykkedes.')
+      // alert(error.data?.statusMessage || 'Oprettelse af konto mislykkedes.')
+      message.error(error.data?.statusMessage || 'Oprettelse af konto mislykkedes.')
     }
   }
 </script>
