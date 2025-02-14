@@ -1,55 +1,63 @@
 <script setup lang="ts">
-import { ref, computed, defineExpose } from 'vue'
+import { ref, computed, defineExpose, watch } from 'vue'
 import BlockPalette, { Block as PaletteBlock } from '~/components/BlockPalette.vue'
 import BlockContainer, { Block } from '~/components/BlockContainer.vue'
 
 interface PaletteBlockExt extends PaletteBlock {}
 
 const props = defineProps<{ initialBlocks: PaletteBlockExt[] }>()
+const emit = defineEmits(['sequenceChanged'])
 
 const availableBlocks = ref<PaletteBlockExt[]>(props.initialBlocks.map(block => ({ ...block })))
 const programSequence = ref<Block[]>([])
 
-const handleAddBlock = (block: PaletteBlockExt) => {
-  console.log("Tilføjer blok:", block);
-  const found = availableBlocks.value.find(b => b.type === block.type);
+function handleAddBlock(block: PaletteBlockExt) {
+  console.log("[Editor] Tilføjer blok:", block)
+  const found = availableBlocks.value.find(b => b.type === block.type)
   if (found && found.count > 0) {
-    found.count--;
+    found.count--
     const newBlock: Block = {
       ...block,
       id: block.type + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000)
-    };
-    if (newBlock.type === 'while') {
-      newBlock.innerBlocks = [];
-      newBlock.value1 = ''; // gentag antal
     }
-    programSequence.value.push(newBlock);
-    console.log("Programsekvens:", programSequence.value);
+    if (newBlock.type === 'while') {
+      newBlock.innerBlocks = []
+      newBlock.value1 = '1' // Standard gentagelsesantal
+    }
+    programSequence.value.push(newBlock)
+    console.log("[Editor] Programsekvens efter tilføjelse:", JSON.stringify(programSequence.value, null, 2))
   }
 }
 
-const handleItemAdded = (item: Block) => {
-  console.log("Item added via drag:", item);
-  const found = availableBlocks.value.find(b => b.type === item.type);
+function handleItemAdded(item: Block) {
+  console.log("[Editor] handleItemAdded:", item)
+  const found = availableBlocks.value.find(b => b.type === item.type)
   if (found && found.count > 0) {
-    found.count--;
+    found.count--
   }
 }
 
-const handleRemoveBlock = (removedBlock: Block) => {
-  console.log("Fjernet blok:", removedBlock);
-  const found = availableBlocks.value.find(b => b.type === removedBlock.type);
+function handleRemoveBlock(removedBlock: Block) {
+  console.log("[Editor] handleRemoveBlock:", removedBlock)
+  const found = availableBlocks.value.find(b => b.type === removedBlock.type)
   if (found) {
-    found.count++;
+    found.count++
   }
 }
 
-const programJson = computed(() => JSON.stringify(programSequence.value, null, 2));
+const programJson = computed(() => JSON.stringify(programSequence.value, null, 2))
+console.log("[Editor] Program JSON:", programJson.value)
 
-// Exponer getProgramSequence til forældre
+// Emit event hver gang programSequence ændres
+watch(programSequence, (newVal) => {
+  const raw = JSON.parse(JSON.stringify(newVal))
+  console.log("[Editor] sequenceChanged:", raw)
+  emit("sequenceChanged", raw)
+}, { deep: true })
+
 defineExpose({
-  getProgramSequence: () => programSequence.value
-});
+  getProgramSequence: () => JSON.parse(JSON.stringify(programSequence.value))
+})
 </script>
 
 <template>

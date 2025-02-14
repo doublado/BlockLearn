@@ -32,30 +32,22 @@ const levelData = ref({
   ]
 });
 
-const gamePlaceholder = ref("Dette er spilområdet. Her vil robotten blive styret af blokprogrammering.");
-
 const editorRef = ref(null);
 const instructions = ref([]);
 
-const runInstructions = () => {
-  if (editorRef.value && editorRef.value.getProgramSequence) {
-    const seq = editorRef.value.getProgramSequence();
-    console.log("Hentet programsekvens:", seq);
-    instructions.value = seq;
-  } else {
-    console.warn("Editor ref eller getProgramSequence mangler.");
-  }
-};
+// Denne funktion bliver kaldt, når editoren emitter "sequenceChanged"
+function updateInstructions(newSequence) {
+  console.log("[Level] sequenceChanged event:", newSequence);
+  instructions.value = newSequence;
+  console.log("[Level] instructions opdateret til:", instructions.value);
+}
 </script>
 
 <template>
   <n-split direction="horizontal" style="height: 100vh" :max="0.75" :min="0.25">
     <template #1>
       <div style="height: 100%; overflow: auto;">
-        <BlockProgrammingEditor ref="editorRef" :initialBlocks="initialBlocks" />
-        <n-button @click="runInstructions" type="primary" class="m-4">
-          Kør Instruktioner
-        </n-button>
+        <BlockProgrammingEditor ref="editorRef" :initialBlocks="initialBlocks" @sequenceChanged="updateInstructions" />
       </div>
     </template>
     <template #2>
