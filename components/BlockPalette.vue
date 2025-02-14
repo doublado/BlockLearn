@@ -2,9 +2,9 @@
 import { defineProps, defineEmits } from 'vue'
 
 export interface Block {
-  type: string
-  label: string
-  count: number
+  type: string;
+  label: string;
+  count: number;
 }
 
 const props = defineProps<{ paletteBlocks: Block[] }>()

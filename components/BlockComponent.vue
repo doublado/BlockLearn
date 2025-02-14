@@ -8,12 +8,11 @@ export interface Block {
   type: string;
   label: string;
   innerBlocks?: Block[];
-  value1?: string; // Gentagelsesantal for while-blokke
+  value1?: string; // Bruges til gentagelsesantal for while-blokke
 }
 
 const props = defineProps<{ block: Block }>()
 
-// Funktion til at vælge styling baseret på bloktype
 const cardClasses = () => {
   switch (props.block.type) {
     case 'moveForward':
@@ -32,9 +31,7 @@ const cardClasses = () => {
 
 <template>
   <n-card :class="['p-4 mb-4 shadow-lg rounded-lg cursor-move', cardClasses()]" size="small" @click.stop>
-    <div class="text-center font-bold text-lg">
-      {{ block.label }}
-    </div>
+    <div class="text-center font-bold text-lg">{{ block.label }}</div>
     <div v-if="block.type === 'while'" class="mt-2">
       <n-input 
         v-model:value="block.value1" 
@@ -42,8 +39,8 @@ const cardClasses = () => {
         size="small" 
         class="mb-2 w-full" 
       />
-      <!-- Nested container med gruppen "program" -->
-      <BlockContainer v-model="block.innerBlocks" :group="{ name: 'program', pull: true, put: true }" />
+      <!-- Brug gruppe "nested" for at sikre, at nested blokke flyttes uden at påvirke global count -->
+      <BlockContainer v-model="block.innerBlocks" :group="{ name: 'nested', pull: true, put: true }" />
     </div>
   </n-card>
 </template>
