@@ -8,13 +8,13 @@ export interface Block {
   type: string;
   label: string;
   innerBlocks?: Block[];
+  value1?: string;
 }
 
 const props = defineProps<{ 
   modelValue: Block[],
   group?: any
 }>()
-
 const emit = defineEmits<{ 
   (e: 'update:modelValue', value: Block[]): void;
   (e: 'itemAdded', item: Block): void;
@@ -36,7 +36,7 @@ const onAdd = (event: any) => {
 <template>
   <draggable
     v-model="localBlocks"
-    :group="props.group"
+    :group="props.group || { name: 'program', pull: true, put: true }"
     item-key="id"
     :animation="200"
     class="space-y-2"

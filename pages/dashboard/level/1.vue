@@ -19,7 +19,7 @@ const gamePlaceholder = ref("Dette er spilområdet. Her vil robotten blive styre
 </script>
 
 <template>
-  <n-split direction="horizontal" style="height: calc(100vh - 100px);">
+  <n-split direction="horizontal" style="height: 100vh" :max="0.75" :min="0.25">
     <template #1>
       <div style="height: 100%; overflow: auto;">
         <BlockProgrammingEditor :initialBlocks="initialBlocks" />

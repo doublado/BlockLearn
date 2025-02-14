@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { defineProps, ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import { NCard, NButton } from 'naive-ui'
+import { defineProps } from 'vue'
+import { NCard, NInput } from 'naive-ui'
 import BlockContainer from './BlockContainer.vue'
 
 export interface Block {
@@ -8,36 +8,12 @@ export interface Block {
   type: string;
   label: string;
   innerBlocks?: Block[];
+  value1?: string; // Gentagelsesantal for while-blokke
 }
 
 const props = defineProps<{ block: Block }>()
 
-// Lokal ref til innerBlocks for while-blokke
-const innerBlocks = ref<Block[]>([])
-
-onMounted(() => {
-  if (props.block.type === 'while') {
-    if (!props.block.innerBlocks) {
-      props.block.innerBlocks = []
-    }
-    innerBlocks.value = [...props.block.innerBlocks]
-  }
-})
-
-onBeforeUnmount(() => {
-  if (props.block.type === 'while') {
-    props.block.innerBlocks = [...innerBlocks.value]
-  }
-})
-
-// Watch for ændringer
-watch(innerBlocks, (newVal) => {
-  if (props.block.type === 'while') {
-    props.block.innerBlocks = [...newVal]
-  }
-}, { deep: true })
-
-// Udvælg styling baseret på blok-type
+// Funktion til at vælge styling baseret på bloktype
 const cardClasses = () => {
   switch (props.block.type) {
     case 'moveForward':
@@ -60,8 +36,14 @@ const cardClasses = () => {
       {{ block.label }}
     </div>
     <div v-if="block.type === 'while'" class="mt-2">
-      <!-- Nested BlockContainer med drag-group -->
-      <BlockContainer v-model="innerBlocks" :group="{ name: 'blocks', pull: 'clone', put: true }" />
+      <n-input 
+        v-model:value="block.value1" 
+        placeholder="Gentag antal (default 1)" 
+        size="small" 
+        class="mb-2 w-full" 
+      />
+      <!-- Nested container med gruppen "program" -->
+      <BlockContainer v-model="block.innerBlocks" :group="{ name: 'program', pull: true, put: true }" />
     </div>
   </n-card>
 </template>

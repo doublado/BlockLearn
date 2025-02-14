@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import BlockPalette, { Block as PaletteBlock } from '~/components/BlockPalette.vue'
 import BlockContainer, { Block } from '~/components/BlockContainer.vue'
 
@@ -7,7 +7,6 @@ interface PaletteBlockExt extends PaletteBlock {}
 
 const props = defineProps<{ initialBlocks: PaletteBlockExt[] }>()
 
-// Lav en lokal kopi af initialBlocks, så de kan ændres per level
 const availableBlocks = ref<PaletteBlockExt[]>(props.initialBlocks.map(block => ({ ...block })))
 const programSequence = ref<Block[]>([])
 
@@ -22,6 +21,7 @@ const handleAddBlock = (block: PaletteBlockExt) => {
     }
     if (newBlock.type === 'while') {
       newBlock.innerBlocks = []
+      newBlock.value1 = '' // gentag antal
     }
     programSequence.value.push(newBlock)
     console.log("Programsekvens:", programSequence.value)
@@ -43,18 +43,26 @@ const handleRemoveBlock = (removedBlock: Block) => {
     found.count++
   }
 }
+
+const programJson = computed(() => JSON.stringify(programSequence.value, null, 2))
 </script>
 
 <template>
   <div class="flex flex-col">
-    <!-- Øverst: Block Palette -->
+    <!-- Block Palette -->
     <div class="mb-4">
       <BlockPalette :paletteBlocks="availableBlocks" @addBlock="handleAddBlock" />
     </div>
-    <!-- Program Sekvens: Gør denne del scrollable -->
+    <!-- Program Sekvens: Scrollable container -->
     <div class="overflow-auto border p-2 rounded m-4 h-[66vh]">
       <h3 class="text-xl font-bold mb-2 text-center">Program Sekvens</h3>
-      <BlockContainer v-model="programSequence" @itemAdded="handleItemAdded" @itemRemoved="handleRemoveBlock" />
+      <BlockContainer v-model="programSequence" :group="{ name: 'program', pull: true, put: true }"
+        @itemAdded="handleItemAdded" @itemRemoved="handleRemoveBlock" />
+    </div>
+    <!-- Debug JSON-visning -->
+    <div class="border p-2 m-4 rounded bg-gray-50">
+      <h4 class="text-lg font-bold mb-2">Program JSON</h4>
+      <pre class="text-sm text-gray-700">{{ programJson }}</pre>
     </div>
   </div>
 </template>
