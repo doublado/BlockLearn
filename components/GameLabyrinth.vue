@@ -2,31 +2,38 @@
 import { ref, reactive, computed, onMounted, toRaw } from 'vue'
 import { NButton, useMessage, useDialog } from 'naive-ui'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '~/stores/user'
 
+// props: levelData and instructions
 const props = defineProps({
   levelData: { type: Object, required: true },
   instructions: { type: Array, default: () => [] }
 })
 
-const labyrinth = props.levelData.labyrinth
-const rows = labyrinth.length
-const cols = labyrinth[0].length
-const tileSize = 40
-const canvasWidth = cols * tileSize
-const canvasHeight = rows * tileSize
+// Create a reactive copy of the labyrinth from levelData so that we can reset it
+const labyrinth = ref(JSON.parse(JSON.stringify(props.levelData.labyrinth)))
+// Save an initial copy for reset
+const initialLabyrinth = JSON.parse(JSON.stringify(labyrinth.value))
 
-// Player state
+// Dimensions for canvas
+const rows = computed(() => labyrinth.value.length)
+const cols = computed(() => labyrinth.value[0].length)
+const tileSize = 40
+const canvasWidth = computed(() => cols.value * tileSize)
+const canvasHeight = computed(() => rows.value * tileSize)
+
+// Player state; also record start position for reset
 const player = reactive({
   x: 0,
   y: 0,
   coins: 0,
-  direction: 0 // 0: højre, 90: ned, 180: venstre, 270: op
+  direction: 0 // 0: right, 90: down, 180: left, 270: up
 })
 
-// Find start cell (value 3) and save starting position for resets
-for (let r = 0; r < rows; r++) {
-  for (let c = 0; c < cols; c++) {
-    if (labyrinth[r][c] === 3) {
+// Find starting cell (value 3) in labyrinth
+for (let r = 0; r < labyrinth.value.length; r++) {
+  for (let c = 0; c < labyrinth.value[r].length; c++) {
+    if (labyrinth.value[r][c] === 3) {
       player.x = c
       player.y = r
     }
@@ -37,28 +44,22 @@ const initialStart = { x: player.x, y: player.y }
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 let ctx: CanvasRenderingContext2D | null = null
 
-const message = useMessage()
-const dialog = useDialog()
-const router = useRouter()
-
-// Flag to indicate if game is running
-const isRunning = ref(false)
-
+// Draw labyrinth using local labyrinth reactive data
 const drawLabyrinth = () => {
   if (!ctx) return
-  ctx.clearRect(0, 0, canvasWidth, canvasHeight)
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
+  ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value)
+  for (let r = 0; r < rows.value; r++) {
+    for (let c = 0; c < cols.value; c++) {
       const x = c * tileSize
       const y = r * tileSize
-      const cell = labyrinth[r][c]
+      const cell = labyrinth.value[r][c]
       if (cell === 1) {
         ctx.fillStyle = '#333'
         ctx.fillRect(x, y, tileSize, tileSize)
       } else if (cell === 2) {
         ctx.fillStyle = 'gold'
         ctx.beginPath()
-        ctx.arc(x + tileSize/2, y + tileSize/2, tileSize/4, 0, 2 * Math.PI)
+        ctx.arc(x + tileSize/2, y + tileSize/2, tileSize/4, 0, 2*Math.PI)
         ctx.fill()
       } else if (cell === 4) {
         ctx.fillStyle = 'lightgreen'
@@ -73,6 +74,7 @@ const drawLabyrinth = () => {
   }
 }
 
+// Draw player as a red arrow
 const drawPlayer = () => {
   if (!ctx) return
   const centerX = player.x * tileSize + tileSize/2
@@ -107,23 +109,24 @@ onMounted(() => {
   }
 })
 
+// Check if a cell is walkable (0,2,3,4)
 function isWalkable(x: number, y: number): boolean {
-  if (x < 0 || x >= cols || y < 0 || y >= rows) return false
-  const cell = labyrinth[y][x]
+  if (x < 0 || x >= cols.value || y < 0 || y >= rows.value) return false
+  const cell = labyrinth.value[y][x]
   return cell === 0 || cell === 2 || cell === 3 || cell === 4
 }
 
+// Reset the game: reset player state and labyrinth to initial state
 const resetGame = () => {
   player.x = initialStart.x
   player.y = initialStart.y
   player.coins = 0
   player.direction = 0
-  // Optionally reset labyrinth coins if necessary
+  labyrinth.value = JSON.parse(JSON.stringify(initialLabyrinth))
   console.log("[Game] Game reset")
-  isRunning.value = false
 }
 
-// Alternative flattenOperations (without using converter.ts externally)
+// We'll use a flattenOperations function (similar to our previous converter)
 function flattenOperations(blocks: any[]): any[] {
   let ops: any[] = []
   blocks.forEach((block) => {
@@ -143,6 +146,11 @@ function flattenOperations(blocks: any[]): any[] {
   return ops
 }
 
+const message = useMessage()
+const dialog = useDialog()
+const router = useRouter()
+const userStore = useUserStore()
+
 const executeOperation = (op: any): boolean => {
   console.log("[Game] Executing operation:", op)
   if (op.type === 'moveForward') {
@@ -160,9 +168,9 @@ const executeOperation = (op: any): boolean => {
     }
     player.x = newX
     player.y = newY
-    if (labyrinth[newY][newX] === 2) {
+    if (labyrinth.value[newY][newX] === 2) {
       player.coins++
-      labyrinth[newY][newX] = 0
+      labyrinth.value[newY][newX] = 0
     }
     return true
   } else if (op.type === 'turnRight') {
@@ -173,6 +181,13 @@ const executeOperation = (op: any): boolean => {
     return true
   }
   return true
+}
+
+const getLevelId = () => {
+  // get level id from current route e.g. /dashboard/level/1 -> 1
+  const route = router.currentRoute.value
+  const parts = route.path.split('/')
+  return parseInt(parts[parts.length - 1], 10)
 }
 
 const executeOperations = (ops: any[]) => {
@@ -189,19 +204,61 @@ const executeOperations = (ops: any[]) => {
       clearInterval(interval)
       return
     }
-    if (labyrinth[player.y][player.x] === 4) {
+    if (labyrinth.value[player.y][player.x] === 4) {
       clearInterval(interval)
-      dialog.success({
-        title: 'Labyrinten gennemført!',
-        content: `Du har samlet ${player.coins} coins!`,
-        positiveText: 'Fortsæt',
-        closable: false,
-        maskClosable: false,
-        onPositiveClick: () => {
-          router.push('/dashboard')
+
+      if (!userStore.user || !userStore.user.id) {
+        dialog.error({
+          title: 'Fejl',
+          content: 'Du er ikke logget ind!'
+        })
+      } else {
+
+        const response = $fetch('/api/progression', {
+          method: 'POST',
+          body: {
+            userId: userStore.user.id,
+            levelId: getLevelId(),
+            coins: player.coins
+          }
+        })
+
+        if (!response) {
+          dialog.error({
+            title: 'Fejl',
+            content: 'Der skete en fejl under lagring af din progression!'
+          })
+          return
+        } else {
+          if (userStore.levelProgress[getLevelId()]) {
+            if (player.coins > userStore.levelProgress[getLevelId()].stars) {
+              userStore.updateLevelProgress({
+                level_id: getLevelId(),
+                stars: player.coins,
+                completed_at: new Date().toISOString()
+              })
+            }
+          } else {
+            userStore.setLevelProgress([{
+              level_id: getLevelId(),
+              stars: player.coins,
+              completed_at: new Date().toISOString()
+            }])
+          }
+
+          dialog.success({
+            title: 'Labyrinten gennemført!',
+            content: `Du har samlet ${player.coins} coins!`,
+            positiveText: 'Fortsæt',
+            closable: false,
+            maskClosable: false,
+            onPositiveClick: () => {
+              router.push('/dashboard')
+            }
+          })
         }
-      })
-      isRunning.value = false
+      }
+      
       return
     }
     index++
@@ -209,12 +266,13 @@ const executeOperations = (ops: any[]) => {
 }
 
 const startExecution = () => {
-  // If game is already running, then reset it.
+  // If game is running, treat button as reset button.
   if (isRunning.value) {
     resetGame()
+    isRunning.value = false
     return
   }
-  // Otherwise, reset game and then run instructions.
+  // Otherwise, reset game, then execute instructions from the start.
   resetGame()
   isRunning.value = true
   const raw = toRaw(props.instructions)
@@ -223,6 +281,8 @@ const startExecution = () => {
   console.log("[Game] Flattened operations:", ops)
   executeOperations(ops)
 }
+
+const isRunning = ref(false)
 
 const currentButtonText = computed(() => isRunning.value ? "Nulstil" : "Kør Instruktioner")
 
