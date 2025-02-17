@@ -1,9 +1,8 @@
 <script setup lang="ts">
   import { ref, reactive } from 'vue'
   import { useRouter, useRoute } from 'vue-router'
-  import { NCard, NTabs, NTabPane, NForm, NFormItemRow, NInput, NButton } from 'naive-ui'
+  import { NCard, NTabs, NTabPane, NForm, NFormItemRow, NInput, NButton, useMessage } from 'naive-ui'
   import { useUserStore } from '~/stores/user'
-  import { useMessage } from 'naive-ui'
 
   definePageMeta({
     middleware: 'only-guests'
