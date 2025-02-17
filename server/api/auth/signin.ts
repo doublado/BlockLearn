@@ -10,27 +10,30 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Missing required fields.' })
   }
 
+  // Query for a user matching the identifier (username or email).
   const userRows: any = await pool.execute(
     'SELECT * FROM users WHERE username = ? OR email = ?',
     [identifier, identifier]
   )
-  
+
   if (!userRows || userRows.length === 0) {
     throw createError({ statusCode: 401, statusMessage: 'Invalid credentials.' })
   }
   const user = userRows[0]
-  const valid = bcrypt.compareSync(password, user.password_hash)
 
+  // Verify the password.
+  const valid = bcrypt.compareSync(password, user.password_hash)
   if (!valid) {
     throw createError({ statusCode: 401, statusMessage: 'Invalid credentials.' })
   }
 
+  // Prepare the user object to return.
   const returnedUser = { id: user.id, username: user.username, email: user.email }
 
+  // Retrieve levels and user progress.
   const levels: any = await pool.execute(
     'SELECT id, level_number, name, description, requirements FROM levels ORDER BY level_number ASC'
   )
-
   const progress: any = await pool.execute(
     'SELECT level_id, stars, completed_at FROM user_level_progress WHERE user_id = ?',
     [user.id]

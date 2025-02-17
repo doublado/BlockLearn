@@ -1,18 +1,16 @@
 <script setup lang="ts">
-  import { NCard, NIcon } from 'naive-ui';
-  import { ConstructOutline } from '@vicons/ionicons5';
+import { NCard, NIcon } from 'naive-ui';
+import { ConstructOutline } from '@vicons/ionicons5';
 
-  definePageMeta({
-    layout: 'frontpage'
-  });
+// Use the "frontpage" layout for the homepage.
+definePageMeta({
+  layout: 'frontpage'
+});
 </script>
 
 <template>
   <div class="flex items-center justify-center min-h-[calc(100vh-58.57px)]">
-    <n-card
-      bordered
-      class="max-w-md text-center shadow-lg p-6"
-    >
+    <n-card bordered class="max-w-md text-center shadow-lg p-6">
       <div class="flex flex-col items-center space-y-4">
         <n-icon size="64">
           <template #default>

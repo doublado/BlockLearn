@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue'
+import { defineProps } from 'vue'
 
+// Define the Block interface for the palette
 export interface Block {
   type: string;
   label: string;
@@ -10,6 +11,7 @@ export interface Block {
 const props = defineProps<{ paletteBlocks: Block[] }>()
 const emit = defineEmits<{ (e: 'addBlock', block: Block): void }>()
 
+// Only emit addBlock if there are remaining counts
 const addBlock = (block: Block) => {
   if (block.count > 0) {
     emit('addBlock', block)

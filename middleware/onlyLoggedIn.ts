@@ -1,10 +1,12 @@
-import { useUserStore } from '~/stores/user'
+import { useUserStore } from '~/stores/user';
 
+/**
+ * Middleware to restrict pages to logged-in users only.
+ */
 export default defineNuxtRouteMiddleware((to, from) => {
-  const userStore = useUserStore()
-  
+  const userStore = useUserStore();
   if (!userStore.user) {
-    // User is not logged in; redirect to the auth page (login/signup)
-    return navigateTo('/auth?tab=signin')
+    // If user is not logged in, redirect to the authentication page.
+    return navigateTo('/auth?tab=signin');
   }
-})
+});

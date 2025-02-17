@@ -14,15 +14,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Passwords do not match.' })
   }
 
+  // Check if a user with the same username or email already exists.
   const existingUsers: any = await pool.execute(
     'SELECT id FROM users WHERE username = ? OR email = ?',
     [username, email]
   )
-  
   if (existingUsers.length > 0) {
     throw createError({ statusCode: 400, statusMessage: 'User with this username or email already exists.' })
   }
 
+  // Hash the password and insert the new user record.
   const salt = bcrypt.genSaltSync(10)
   const hashedPassword = bcrypt.hashSync(password, salt)
   const result: any = await pool.execute(
@@ -42,6 +43,7 @@ export default defineEventHandler(async (event) => {
 
   const user = userRows[0]
 
+  // Retrieve all levels to send back.
   const levels: any = await pool.execute(
     'SELECT id, level_number, name, description, requirements FROM levels ORDER BY level_number ASC'
   )

@@ -50,6 +50,7 @@ export const useUserStore = defineStore('user', {
       }
     },
   },
+  // Persist state to localStorage using a Pinia persistence plugin.
   persist: {
     storage: piniaPluginPersistedstate.localStorage(),
   },

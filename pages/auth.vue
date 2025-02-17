@@ -1,93 +1,113 @@
 <script setup lang="ts">
-  import { ref, reactive } from 'vue'
-  import { useRouter, useRoute } from 'vue-router'
-  import { NCard, NTabs, NTabPane, NForm, NFormItemRow, NInput, NButton, useMessage } from 'naive-ui'
-  import { useUserStore } from '~/stores/user'
+import { ref, reactive } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import {
+  NCard,
+  NTabs,
+  NTabPane,
+  NForm,
+  NFormItemRow,
+  NInput,
+  NButton,
+  useMessage
+} from 'naive-ui';
+import { useUserStore } from '~/stores/user';
 
-  definePageMeta({
-    middleware: 'only-guests'
-  });
+// Only guests should be able to access the authentication page.
+definePageMeta({
+  middleware: 'only-guests'
+});
 
-  const message = useMessage()
-  const router = useRouter()
-  const route = useRoute()
-  const activeTab = ref(route.query.tab || 'signin')
+const message = useMessage();
+const router = useRouter();
+const route = useRoute();
+const activeTab = ref(route.query.tab || 'signin');
+const userStore = useUserStore();
 
-  const userStore = useUserStore()
+// Reactive state for sign in data.
+const signInData = reactive({
+  identifier: '',
+  password: ''
+});
 
-  const signInData = reactive({
-    identifier: '',
-    password: ''
-  })
+// Reactive state for sign up data.
+const signUpData = reactive({
+  username: '',
+  email: '',
+  password: '',
+  confirmPassword: ''
+});
 
-  const signUpData = reactive({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  })
+/**
+ * Update the active tab in the route query.
+ *
+ * @param tabName - The name of the tab to activate.
+ */
+const updateTabInRoute = (tabName: string) => {
+  router.replace({ query: { ...route.query, tab: tabName } });
+};
 
-  const updateTabInRoute = (tabName: string) => {
-    router.replace({ query: { ...route.query, tab: tabName } })
+/**
+ * Handle user sign in.
+ */
+const handleSignIn = async () => {
+  try {
+    const response = await $fetch('/api/auth/signin', {
+      method: 'POST',
+      body: {
+        identifier: signInData.identifier,
+        password: signInData.password
+      }
+    });
+    if (response.success) {
+      userStore.setUser(response.user);
+      userStore.setLevels(response.levels);
+      userStore.setLevelProgress(response.levelProgress);
+      router.push('/dashboard');
+    }
+  } catch (error: any) {
+    console.error(error);
+    message.error(error.data?.statusMessage || 'Log ind mislykkedes.');
   }
+};
 
-  const handleSignIn = async () => {
-    try {
-      const response = await $fetch('/api/auth/signin', {
+/**
+ * Handle user sign up and auto sign in upon successful registration.
+ */
+const handleSignUp = async () => {
+  try {
+    const signupResponse = await $fetch('/api/auth/signup', {
+      method: 'POST',
+      body: {
+        username: signUpData.username,
+        email: signUpData.email,
+        password: signUpData.password,
+        confirmPassword: signUpData.confirmPassword
+      }
+    });
+    if (signupResponse.success) {
+      // Set levels from the signup response.
+      userStore.setLevels(signupResponse.levels);
+      // Automatically sign in after successful signup.
+      const signinResponse = await $fetch('/api/auth/signin', {
         method: 'POST',
         body: {
-          identifier: signInData.identifier,
-          password: signInData.password
+          identifier: signUpData.username,
+          password: signUpData.password
         }
-      })
-      if (response.success) {
-        userStore.setUser(response.user)
-        userStore.setLevels(response.levels)
-        userStore.setLevelProgress(response.levelProgress)
-        router.push('/dashboard')
+      });
+      if (signinResponse.success) {
+        userStore.setUser(signinResponse.user);
+        userStore.setLevels(signinResponse.levels);
+        userStore.setLevelProgress(signinResponse.levelProgress);
+        router.push('/dashboard');
       }
-    } catch (error: any) {
-      console.error(error)
-      // alert(error.data?.statusMessage || 'Log ind mislykkedes.')
-      message.error(error.data?.statusMessage || 'Log ind mislykkedes.')
     }
+  } catch (error: any) {
+    console.error(error);
+    message.error(error.data?.statusMessage || 'Oprettelse af konto mislykkedes.');
   }
-
-  const handleSignUp = async () => {
-    try {
-      const signupResponse = await $fetch('/api/auth/signup', {
-        method: 'POST',
-        body: {
-          username: signUpData.username,
-          email: signUpData.email,
-          password: signUpData.password,
-          confirmPassword: signUpData.confirmPassword
-        }
-      })
-      if (signupResponse.success) {
-        // Set levels from the signup response
-        userStore.setLevels(signupResponse.levels)
-        // Automatically sign in after successful signup
-        const signinResponse = await $fetch('/api/auth/signin', {
-          method: 'POST',
-          body: {
-            identifier: signUpData.username,
-            password: signUpData.password
-          }
-        })
-        if (signinResponse.success) {
-          userStore.setUser(signinResponse.user)
-          userStore.setLevels(signinResponse.levels)
-          userStore.setLevelProgress(signinResponse.levelProgress)
-          router.push('/dashboard')
-        }
-      }
-    } catch (error: any) {
-      console.error(error)
-      // alert(error.data?.statusMessage || 'Oprettelse af konto mislykkedes.')
-      message.error(error.data?.statusMessage || 'Oprettelse af konto mislykkedes.')
-    }
-  }
+};
 </script>
 
 <template>
@@ -102,6 +122,7 @@
         pane-style="padding-left: 4px; padding-right: 4px; box-sizing: border-box;"
         @update:value="updateTabInRoute"
       >
+        <!-- Sign in tab -->
         <n-tab-pane name="signin" tab="Log ind">
           <n-form>
             <n-form-item-row label="Brugernavn eller e-mail">
@@ -119,15 +140,26 @@
               />
             </n-form-item-row>
           </n-form>
-          <n-button type="primary" block secondary strong class="mt-4" @click="handleSignIn">
+          <n-button
+            type="primary"
+            block
+            secondary
+            strong
+            class="mt-4"
+            @click="handleSignIn"
+          >
             Log ind
           </n-button>
         </n-tab-pane>
 
+        <!-- Sign up tab -->
         <n-tab-pane name="signup" tab="Opret konto">
           <n-form>
             <n-form-item-row label="Brugernavn">
-              <n-input placeholder="Indtast dit brugernavn" v-model:value="signUpData.username" />
+              <n-input
+                placeholder="Indtast dit brugernavn"
+                v-model:value="signUpData.username"
+              />
             </n-form-item-row>
             <n-form-item-row label="E-mail">
               <n-input
@@ -151,7 +183,14 @@
               />
             </n-form-item-row>
           </n-form>
-          <n-button type="primary" block secondary strong class="mt-4" @click="handleSignUp">
+          <n-button
+            type="primary"
+            block
+            secondary
+            strong
+            class="mt-4"
+            @click="handleSignUp"
+          >
             Opret konto
           </n-button>
         </n-tab-pane>

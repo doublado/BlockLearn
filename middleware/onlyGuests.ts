@@ -1,9 +1,12 @@
-import { useUserStore } from '~/stores/user'
+import { useUserStore } from '~/stores/user';
 
+/**
+ * Middleware to redirect logged-in users away from guest-only pages.
+ */
 export default defineNuxtRouteMiddleware((to, from) => {
-  const userStore = useUserStore()
+  const userStore = useUserStore();
   if (userStore.user) {
-    // User is logged in; redirect them to the dashboard
-    return navigateTo('/dashboard')
+    // If user is logged in, redirect to the dashboard.
+    return navigateTo('/dashboard');
   }
-})
+});

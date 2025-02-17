@@ -1,86 +1,107 @@
 <script setup lang="ts">
-  import { computed } from 'vue'
-  import { useUserStore } from '~/stores/user'
-  import { useNavigation } from '~/composables/useNavigation'
-  import { NCard } from 'naive-ui'
-  import { useMessage } from 'naive-ui'
-  import { LockClosedOutline, Star } from '@vicons/ionicons5'
+import { computed } from 'vue'
+import { useUserStore } from '~/stores/user'
+import { useNavigation } from '~/composables/useNavigation'
+import { NCard } from 'naive-ui'
+import { useMessage } from 'naive-ui'
+import { LockClosedOutline, Star } from '@vicons/ionicons5'
 
-  definePageMeta({
-    layout: 'dashboard',
-    middleware: 'only-logged-in'
-  });
+// Use the "dashboard" layout and enforce logged-in access.
+definePageMeta({
+  layout: 'dashboard',
+  middleware: 'only-logged-in'
+})
 
-  const userStore = useUserStore()
-  const { handleNavigate } = useNavigation()
-  const message = useMessage()
+const userStore = useUserStore()
+const { handleNavigate } = useNavigation()
+const message = useMessage()
 
-  // Sorter niveauerne efter level_number
-  const sortedLevels = computed(() => {
-    return [...userStore.levels].sort((a, b) => a.level_number - b.level_number)
-  })
+/**
+ * Sort levels by their "level_number" property.
+ */
+const sortedLevels = computed(() => {
+  return [...userStore.levels].sort((a, b) => a.level_number - b.level_number)
+})
 
-  // Gruppér niveauerne i rækker af 5, så de fylder hele bredden
-  const levelRows = computed(() => {
-    const rows = []
-    const levels = sortedLevels.value
-    for (let i = 0; i < levels.length; i += 5) {
-      rows.push(levels.slice(i, i + 5))
-    }
-    return rows
-  })
-
-  // Hent brugerens fremskridt for et givet niveau
-  const getLevelProgress = (level: any) => {
-    return userStore.levelProgress.find((lp: any) => lp.level_id === level.id)
+/**
+ * Group levels into rows of five for a grid layout.
+ */
+const levelRows = computed(() => {
+  const rows = []
+  const levels = sortedLevels.value
+  for (let i = 0; i < levels.length; i += 5) {
+    rows.push(levels.slice(i, i + 5))
   }
+  return rows
+})
 
-  // Tjek om et niveau er låst op baseret på avancerede JSON-krav
-  const isLevelUnlocked = (level: any) => {
-    // Niveau 1 er altid oplåst
-    if (level.level_number === 1) return true
+/**
+ * Retrieve the progress information for a given level.
+ * @param level - The level object.
+ */
+const getLevelProgress = (level: any) => {
+  return userStore.levelProgress.find((lp: any) => lp.level_id === level.id)
+}
 
-    if (level.requirements && Object.keys(level.requirements).length > 0) {
-      for (const reqLevelStr in level.requirements) {
-        const requiredStars = Number(level.requirements[reqLevelStr])
-        const requiredLevelNumber = Number(reqLevelStr)
-        const requiredLevel = userStore.levels.find((l: any) => l.level_number === requiredLevelNumber)
-        if (!requiredLevel) return false
-        const progress = userStore.levelProgress.find((lp: any) => lp.level_id === requiredLevel.id)
-        if (!progress || !progress.completed_at || progress.stars < requiredStars) {
-          return false
-        }
+/**
+ * Determine if a level is unlocked.
+ * Level 1 is always unlocked. For others, check advanced requirements,
+ * or fallback to verifying if the previous level was completed.
+ * @param level - The level object.
+ */
+const isLevelUnlocked = (level: any) => {
+  // Level 1 is always unlocked.
+  if (level.level_number === 1) return true
+
+  // Check advanced requirements if available.
+  if (level.requirements && Object.keys(level.requirements).length > 0) {
+    for (const reqLevelStr in level.requirements) {
+      const requiredStars = Number(level.requirements[reqLevelStr])
+      const requiredLevelNumber = Number(reqLevelStr)
+      const requiredLevel = userStore.levels.find((l: any) => l.level_number === requiredLevelNumber)
+      if (!requiredLevel) return false
+      const progress = userStore.levelProgress.find((lp: any) => lp.level_id === requiredLevel.id)
+      if (!progress || !progress.completed_at || progress.stars < requiredStars) {
+        return false
       }
-      return true
-    } else {
-      // Ellers antages niveauet at låses op, når det forrige er gennemført
-      const prevLevel = userStore.levels.find((l: any) => l.level_number === level.level_number - 1)
-      if (!prevLevel) return true
-      const progress = userStore.levelProgress.find((lp: any) => lp.level_id === prevLevel.id)
-      return progress && progress.completed_at
     }
+    return true
+  } else {
+    // Otherwise, assume the level unlocks after the previous one is completed.
+    const prevLevel = userStore.levels.find((l: any) => l.level_number === level.level_number - 1)
+    if (!prevLevel) return true
+    const progress = userStore.levelProgress.find((lp: any) => lp.level_id === prevLevel.id)
+    return progress && progress.completed_at
   }
+}
 
-  // Bestem kortets styling baseret på om niveauet er gennemført/låst
-  const getLevelCardClass = (level: any) => {
-    const progress = getLevelProgress(level)
-    if (progress && progress.completed_at) {
-      return 'bg-indigo-500 text-white hover:shadow-2xl'
-    }
-    if (isLevelUnlocked(level)) {
-      return 'bg-gradient-to-br from-green-400 to-blue-500 text-white hover:shadow-2xl'
-    }
-    return 'bg-gray-300 text-gray-800 opacity-70 cursor-not-allowed'
+/**
+ * Determine the CSS classes for a level card based on progress and unlock status.
+ * @param level - The level object.
+ */
+const getLevelCardClass = (level: any) => {
+  const progress = getLevelProgress(level)
+  if (progress && progress.completed_at) {
+    return 'bg-indigo-500 text-white hover:shadow-2xl'
   }
+  if (isLevelUnlocked(level)) {
+    return 'bg-gradient-to-br from-green-400 to-blue-500 text-white hover:shadow-2xl'
+  }
+  return 'bg-gray-300 text-gray-800 opacity-70 cursor-not-allowed'
+}
 
-  // Når et niveau vælges, tjek om det er oplåst inden navigation
-  const selectLevel = (level: any) => {
-    if (isLevelUnlocked(level)) {
-      handleNavigate(`dashboard/level/${level.id}`)
-    } else {
-      message.warning("Dette level er låst!")
-    }
+/**
+ * Handle level selection:
+ * Navigate to the level if unlocked; otherwise, warn the user.
+ * @param level - The level object.
+ */
+const selectLevel = (level: any) => {
+  if (isLevelUnlocked(level)) {
+    handleNavigate(`dashboard/level/${level.id}`)
+  } else {
+    message.warning("Dette level er låst!")
   }
+}
 </script>
 
 <template>
@@ -97,7 +118,7 @@
       >
         <div class="font-bold text-xl">Level {{ level.level_number }}</div>
         <div class="mt-2 text-xs text-center">
-          <!-- Hvis niveauet er låst, vis låsekrav -->
+          <!-- Display requirements if level is locked -->
           <template v-if="!isLevelUnlocked(level)">
             <div class="flex flex-col items-center">
               <div class="flex items-center justify-center space-x-1">
@@ -111,7 +132,7 @@
               </div>
             </div>
           </template>
-          <!-- Hvis niveauet er gennemført, vis antal stjerner -->
+          <!-- Display completion status and stars if level is completed -->
           <template v-else-if="getLevelProgress(level) && getLevelProgress(level).completed_at">
             <div class="flex flex-col items-center">
               <span class="text-sm">Afsluttet</span>
@@ -122,7 +143,7 @@
               </div>
             </div>
           </template>
-          <!-- Hvis niveauet er oplåst, men ikke spillet, vis intet ekstra -->
+          <!-- Otherwise, no extra info is shown -->
         </div>
       </n-card>
     </div>

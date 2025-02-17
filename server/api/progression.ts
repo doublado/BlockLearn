@@ -2,8 +2,11 @@ import { defineEventHandler, readBody, createError } from 'h3'
 import pool from '~/server/db'
 
 /**
- * Recursively converts any BigInt values to strings.
- * You can change to Number(val) if you're sure the values are safe.
+ * Recursively convert BigInt values in a data structure to strings.
+ * Change to Number(val) if you are sure the values can be safely converted.
+ *
+ * @param data - The data to convert.
+ * @returns The converted data.
  */
 function convertBigInt(data: any): any {
   if (typeof data === 'bigint') {
@@ -21,7 +24,7 @@ function convertBigInt(data: any): any {
 }
 
 export default defineEventHandler(async (event) => {
-  // Parse and log the request body
+  // Parse the request body.
   const body = await readBody(event)
   const { userId, levelId, coins } = body
 
@@ -29,26 +32,26 @@ export default defineEventHandler(async (event) => {
   console.log('levelId:', levelId)
   console.log('coins:', coins)
 
-  // Validate input
+  // Validate input data.
   if (!userId || !levelId || typeof coins !== 'number') {
     throw createError({ statusCode: 400, statusMessage: 'Invalid input' })
   }
 
   try {
-    // Execute the SELECT query using MariaDB's API (returns rows directly)
+    // Retrieve existing progress record for the user and level.
     const rows = await pool.execute(
       'SELECT stars FROM user_level_progress WHERE user_id = ? AND level_id = ?',
       [userId, levelId]
     )
     console.log('Full SELECT query result:', rows)
 
-    // Verify that rows is an array
+    // Ensure the query returned an array.
     if (!Array.isArray(rows)) {
       console.error('Unexpected SELECT query result format:', rows)
       throw createError({ statusCode: 500, statusMessage: 'Unexpected query result format' })
     }
 
-    // If a record exists, update if coins are higher; otherwise, insert a new record
+    // Update if record exists and new coins are higher, else insert a new record.
     if (rows.length > 0) {
       const existingCoins = rows[0].stars
       if (coins > existingCoins) {
@@ -56,7 +59,6 @@ export default defineEventHandler(async (event) => {
           'UPDATE user_level_progress SET stars = ? WHERE user_id = ? AND level_id = ?',
           [coins, userId, levelId]
         )
-        // Convert BigInt values before returning
         return { success: true, updated: true, result: convertBigInt(updateResult) }
       } else {
         return { success: true, updated: false, message: 'No update necessary' }
@@ -66,7 +68,6 @@ export default defineEventHandler(async (event) => {
         'INSERT INTO user_level_progress (user_id, level_id, stars) VALUES (?, ?, ?)',
         [userId, levelId, coins]
       )
-      // Convert BigInt values before returning
       return { success: true, inserted: true, result: convertBigInt(insertResult) }
     }
   } catch (error) {
