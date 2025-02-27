@@ -12,13 +12,16 @@ import GameLabyrinth from '~/components/GameLabyrinth.vue'
 // Define the initial available blocks in the palette
 const initialBlocks = [
   { type: 'moveForward', label: 'Gå Fremad', count: 4 },
+  { type: 'turnRight', label: 'Drej til Højre', count: 1 },
 ];
 
 // Define the level data including the labyrinth grid
 const levelData = ref({
-  levelId: 1,
+  levelId: 2,
   labyrinth: [
-    [3,2,2,2,4],
+    [3,2,2],
+    [1,1,2],
+    [1,1,4],
   ]
 });
 

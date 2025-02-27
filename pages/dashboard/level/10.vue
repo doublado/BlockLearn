@@ -10,15 +10,26 @@ import BlockProgrammingEditor from '~/components/BlockProgrammingEditor.vue'
 import GameLabyrinth from '~/components/GameLabyrinth.vue'
 
 // Define the initial available blocks in the palette
-const initialBlocks = [
-  { type: 'moveForward', label: 'Gå Fremad', count: 4 },
+const initialBlocks = [ //
+  { type: 'moveForward', label: 'Gå Fremad', count: 6 },
+  { type: 'turnRight', label: 'Drej til Højre', count: 5 },
+  { type: 'turnLeft', label: 'Drej til Venstre', count: 7 },
+  { type: 'while', label: 'While (Gentag)', count: 6 }
 ];
 
 // Define the level data including the labyrinth grid
 const levelData = ref({
-  levelId: 1,
+  levelId: 10,
   labyrinth: [
-    [3,2,2,2,4],
+    [0,0,1,4,0,1,1,0,0],
+    [0,1,1,1,0,0,1,1,0],
+    [1,1,1,1,1,0,0,1,1],
+    [3,0,1,1,1,1,0,0,1],
+    [1,0,0,1,1,1,1,0,0],
+    [1,1,0,0,1,1,1,0,2],
+    [1,1,1,0,0,1,0,0,0],
+    [0,1,1,1,0,0,0,2,1],
+    [0,0,1,1,1,2,0,1,1],
   ]
 });
 
