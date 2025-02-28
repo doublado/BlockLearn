@@ -51,6 +51,6 @@ INSERT INTO levels (level_number, name, description, requirements) VALUES
 (7,  'Level 7',  'Beskrivelse', '{"6": 1}'),
 (8,  'Level 8',  'Beskrivelse', '{"7": 1}'),
 (9,  'Level 9',  'Beskrivelse', '{"8": 1}'),
-(10, 'Level 10', 'Beskrivelse', '{"9": 1, "8": 2}'),
-(11, 'Level 11', 'Beskrivelse', '{"1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3, "8": 3, "9": 3, "10": 3}'),
-(12, 'Level 12', 'Beskrivelse', '{"1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3, "8": 3, "9": 3, "10": 3, "11": 3}');
+(10, 'Level 10', 'Beskrivelse', '{"9": 1}'),
+(11, 'Level 11', 'Beskrivelse', '{"9": 3, "10": 3}'),
+(12, 'Level 12', 'Beskrivelse', '{"10": 3, "11": 3}');
