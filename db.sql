@@ -3,9 +3,6 @@
 CREATE DATABASE IF NOT EXISTS `BlockLearn` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `BlockLearn`;
 
--- ======================================================
--- Create the "users" table to store user information.
--- ======================================================
 CREATE TABLE IF NOT EXISTS `users` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(50) NOT NULL,
@@ -18,9 +15,6 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `unique_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ======================================================
--- Create the "levels" table to store game level definitions.
--- ======================================================
 CREATE TABLE IF NOT EXISTS `levels` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `level_number` INT UNSIGNED NOT NULL UNIQUE,
@@ -32,9 +26,6 @@ CREATE TABLE IF NOT EXISTS `levels` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ======================================================
--- Create the "user_level_progress" table to track user progress.
--- ======================================================
 CREATE TABLE IF NOT EXISTS `user_level_progress` (
   `user_id` INT UNSIGNED NOT NULL,
   `level_id` INT UNSIGNED NOT NULL,
