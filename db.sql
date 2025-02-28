@@ -42,15 +42,15 @@ CREATE TABLE IF NOT EXISTS `user_level_progress` (
 -- where the key represents the level number and the value is the required star count.
 -- ======================================================
 INSERT INTO levels (level_number, name, description, requirements) VALUES
-(1,  'Level 1',  'Introduktion til spillet', '{}'),
-(2,  'Level 2',  'Afslut Level 1 med mindst 1 stjerne', '{"1": 1}'),
-(3,  'Level 3',  'Afslut Level 2 med mindst 1 stjerne', '{"2": 1}'),
-(4,  'Level 4',  'Afslut Level 3 med mindst 1 stjerne', '{"3": 1}'),
-(5,  'Level 5',  'Afslut Level 3 med 2 stjerner og Level 4 med 2 stjerner', '{"3": 2, "4": 2}'),
-(6,  'Level 6',  'Afslut Level 4 med mindst 1 stjerne', '{"4": 1}'),
-(7,  'Level 7',  'Afslut Level 6 med mindst 1 stjerne', '{"6": 1}'),
-(8,  'Level 8',  'Afslut Level 7 med mindst 1 stjerne', '{"7": 1}'),
-(9,  'Level 9',  'Afslut Level 8 med mindst 1 stjerne', '{"8": 1}'),
-(10, 'Level 10', 'Afslut Level 8 med 2 stjerner og Level 9 med 2 stjerner', '{"8": 2, "9": 2}'),
-(11, 'Level 11', 'Afslut Level 10 med mindst 1 stjerne', '{"10": 1}'),
-(12, 'Level 12', 'Afslut Level 11 med mindst 1 stjerne', '{"11": 1}'),
+(1,  'Level 1',  'Beskrivelse', '{}'),
+(2,  'Level 2',  'Beskrivelse', '{"1": 1}'),
+(3,  'Level 3',  'Beskrivelse', '{"2": 1}'),
+(4,  'Level 4',  'Beskrivelse', '{"3": 1}'),
+(5,  'Level 5',  'Beskrivelse', '{"4": 1}'),
+(6,  'Level 6',  'Beskrivelse', '{"5": 1}'),
+(7,  'Level 7',  'Beskrivelse', '{"6": 1}'),
+(8,  'Level 8',  'Beskrivelse', '{"7": 1}'),
+(9,  'Level 9',  'Beskrivelse', '{"8": 1}'),
+(10, 'Level 10', 'Beskrivelse', '{"9": 1, "8": 2}'),
+(11, 'Level 11', 'Beskrivelse', '{"1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3, "8": 3, "9": 3, "10": 3}'),
+(12, 'Level 12', 'Beskrivelse', '{"1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3, "8": 3, "9": 3, "10": 3, "11": 3}');
